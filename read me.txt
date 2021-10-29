@@ -1,0 +1,96 @@
+case study-proj
+manoj yadav
+2021-10-28
+
+rm(list = ls())
+library(janitor)
+## Warning: package 'janitor' was built under R version 4.0.5
+## 
+## Attaching package: 'janitor'
+## The following objects are masked from 'package:stats':
+## 
+##     chisq.test, fisher.test
+library(lubridate)
+## Warning: package 'lubridate' was built under R version 4.0.5
+## 
+## Attaching package: 'lubridate'
+## The following objects are masked from 'package:base':
+## 
+##     date, intersect, setdiff, union
+library(ggplot2)
+library(scales)
+
+#case_dt = dir("/Users/path/Documents/case proj/data/",full.names = T) %>% map_df(read_csv)
+
+#reading files
+cs_dt1 = read.csv("/Users/path/Documents/case proj/data/202010-divvy-tripdata.csv")
+cs_dt2 = read.csv("/Users/path/Documents/case proj/data/202011-divvy-tripdata.csv")
+cs_dt3 = read.csv("/Users/path/Documents/case proj/data/202012-divvy-tripdata.csv")
+cs_dt4 = read.csv("/Users/path/Documents/case proj/data/202101-divvy-tripdata.csv")
+cs_dt5 = read.csv("/Users/path/Documents/case proj/data/202102-divvy-tripdata.csv")
+cs_dt6 = read.csv("/Users/path/Documents/case proj/data/202103-divvy-tripdata.csv")
+cs_dt7 = read.csv("/Users/path/Documents/case proj/data/202104-divvy-tripdata.csv")
+cs_dt8 = read.csv("/Users/path/Documents/case proj/data/202105-divvy-tripdata.csv")
+cs_dt9 = read.csv("/Users/path/Documents/case proj/data/202106-divvy-tripdata.csv")
+cs_dt10 = read.csv("/Users/path/Documents/case proj/data/202107-divvy-tripdata.csv")
+cs_dt11 = read.csv("/Users/path/Documents/case proj/data/202108-divvy-tripdata.csv")
+cs_dt12 = read.csv("/Users/path/Documents/case proj/data/202109-divvy-tripdata.csv")
+
+#merging files 
+cs_raw = rbind(cs_dt1,cs_dt10,cs_dt11,cs_dt2,cs_dt3,cs_dt4,cs_dt5,cs_dt6,cs_dt7,cs_dt8,cs_dt9)
+
+cs_raw = janitor::remove_empty(cs_raw,which = c("cols"))
+cs_raw = janitor::remove_empty(cs_raw,which = c("rows"))
+str(cs_raw)
+## 'data.frame':    4380114 obs. of  13 variables:
+##  $ ride_id           : chr  "ACB6B40CF5B9044C" "DF450C72FD109C01" "B6396B54A15AC0DF" "44A4AEE261B9E854" ...
+##  $ rideable_type     : chr  "electric_bike" "electric_bike" "electric_bike" "electric_bike" ...
+##  $ started_at        : chr  "2020-10-31 19:39:43" "2020-10-31 23:50:08" "2020-10-31 23:00:01" "2020-10-31 22:16:43" ...
+##  $ ended_at          : chr  "2020-10-31 19:57:12" "2020-11-01 00:04:16" "2020-10-31 23:08:22" "2020-10-31 22:19:35" ...
+##  $ start_station_name: chr  "Lakeview Ave & Fullerton Pkwy" "Southport Ave & Waveland Ave" "Stony Island Ave & 67th St" "Clark St & Grace St" ...
+##  $ start_station_id  : chr  "313" "227" "102" "165" ...
+##  $ end_station_name  : chr  "Rush St & Hubbard St" "Kedzie Ave & Milwaukee Ave" "University Ave & 57th St" "Broadway & Sheridan Rd" ...
+##  $ end_station_id    : chr  "125" "260" "423" "256" ...
+##  $ start_lat         : num  41.9 41.9 41.8 42 41.9 ...
+##  $ start_lng         : num  -87.6 -87.7 -87.6 -87.7 -87.7 ...
+##  $ end_lat           : num  41.9 41.9 41.8 42 41.9 ...
+##  $ end_lng           : num  -87.6 -87.7 -87.6 -87.7 -87.7 ...
+##  $ member_casual     : chr  "casual" "casual" "casual" "casual" ...
+#formatting timestamp from character to date time 
+cs_raw$started_at = lubridate::ymd_hms(cs_raw$started_at)
+cs_raw$ended_at = lubridate::ymd_hms(cs_raw$ended_at)
+
+#parsing time
+#cs_raw$started_time = lubridate::hms(cs_raw$started_at)
+#cs_raw$ended_time = lubridate::hms(cs_raw$ended_at)
+
+#creating hour field 
+cs_raw$start_hour = lubridate::hour(cs_raw$started_at)
+cs_raw$end_hour = lubridate::hour(cs_raw$ended_at)
+
+cs_raw$start_date = as.Date(cs_raw$started_at)
+cs_raw$end_date = as.Date(cs_raw$ended_at)
+
+#plotting membership distribution of past 12 months 
+ggplot(data = cs_raw) + geom_bar(mapping = aes(x = start_date,color = member_casual))+
+  scale_y_continuous(labels = comma)+
+  facet_wrap(~member_casual)+
+  labs(title = "membership distribution of past 12 months")
+
+#plotting number bike rides per start_hour of past 12 months over all
+ggplot(data = cs_raw) + geom_bar(mapping = aes(x = start_hour))+
+  scale_y_continuous(labels = comma)+
+  labs(title = "bike rides per start_hour of past 12 months over all")  
+  
+#plotting number bike rides per start_hour of past 12 months casual vs member  
+ggplot(data = cs_raw) + geom_bar(mapping = aes(x = start_hour,color = member_casual))+
+  scale_y_continuous(labels = comma)+
+  facet_wrap(~member_casual)+
+  labs(title = "bike rides per start_hour of past 12 months casual vs member")
+
+#plotting number bike rides per start_hour of past 12 months for different bike type  
+ggplot(data = cs_raw) + geom_bar(mapping = aes(x = start_hour,color = rideable_type))+
+  scale_y_continuous(labels = comma)+
+  facet_wrap(~member_casual)+
+  labs(title = "bike rides per start_hour of past 12 months for different bike type")
+  
